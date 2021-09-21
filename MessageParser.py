@@ -6,7 +6,7 @@ class MessageParser:
 
     def __init__(self, sentence):
         self.sentence = sentence
-        self.m = MeCab.Tagger()
+        self.m = MeCab.Tagger("-Ochasen")
 
     def GetNouns(self):
         nouns = []
@@ -25,7 +25,7 @@ class MessageParser:
             if len(analizedData) > 3:
                 if "動詞" in analizedData[3]:
                     verb.append(analizedData[0])
-
+        print("verb = " + str(verb))
         return verb
 
     def GetNounsData(self):
