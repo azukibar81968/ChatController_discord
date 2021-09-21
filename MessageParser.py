@@ -6,7 +6,7 @@ class MessageParser:
 
     def __init__(self, sentence):
         self.sentence = sentence
-        self.m = MeCab.Tagger("-Ochasen")
+        self.m = MeCab.Tagger()
 
     def GetNouns(self):
         nouns = []
