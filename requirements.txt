@@ -3,8 +3,8 @@ astroid==2.7.3
 async-timeout==3.0.1
 attrs==21.2.0
 autopep8==1.5.7
-cabocha @ file:///Users/yuki/Documents/GitHub/line-bot-sdk-python/mecab-ipadic-neologd/cabocha-master/cabocha
-cabocha-python @ file:///Users/yuki/Documents/GitHub/line-bot-sdk-python/mecab-ipadic-neologd/cabocha-master/python
+#cabocha @ file:///Users/yuki/Documents/GitHub/line-bot-sdk-python/mecab-ipadic-neologd/cabocha-master/cabocha
+#cabocha-python @ file:///Users/yuki/Documents/GitHub/line-bot-sdk-python/mecab-ipadic-neologd/cabocha-master/python
 certifi==2021.5.30
 cffi==1.14.6
 chardet==4.0.0
