@@ -1,7 +1,5 @@
-#certifi==2021.5.30
 cffi==1.14.6
 discord.py==1.7.3
 mecab-python3==1.0.4
 urllib3==1.26.5
 websocket-client==0.44.0
-unidic_lite
