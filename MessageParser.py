@@ -1,19 +1,22 @@
 import sys
 import MeCab
 
+SEP_CHAR = '\t'
+DICT = ''
+WORD_CLASS = 4
 
 class MessageParser:
 
     def __init__(self, sentence):
         self.sentence = sentence
-        self.m = MeCab.Tagger("-Ochasen")
+        self.m = MeCab.Tagger()
 
     def GetNouns(self):
         nouns = []
         for line in self.m.parse(self.sentence).splitlines():
-            analizedData = line.split('\t')
-            if len(analizedData) > 3:
-                if "名詞" in analizedData[3]:
+            analizedData = line.split(SEP_CHAR)
+            if len(analizedData) > WORD_CLASS:
+                if "名詞" in analizedData[WORD_CLASS]:
                     nouns.append(analizedData[0])
 
         return nouns
@@ -21,19 +24,19 @@ class MessageParser:
     def GetVerb(self):
         verb = []
         for line in self.m.parse(self.sentence).splitlines():
-            analizedData = line.split('\t')
-            if len(analizedData) > 3:
-                if "動詞" in analizedData[3]:
+            analizedData = line.split(SEP_CHAR)
+            #print("analizedData = " + str(analizedData))
+            if len(analizedData) > WORD_CLASS:
+                if "動詞" in analizedData[WORD_CLASS]:
                     verb.append(analizedData[0])
-        print("verb = " + str(verb))
         return verb
 
     def GetNounsData(self):
         nouns = []
         for line in self.m.parse(self.sentence).splitlines():
-            analizedData = line.split('\t')
-            if len(analizedData) > 3:
-                if "名詞" in analizedData[3]:
+            analizedData = line.split(SEP_CHAR)
+            if len(analizedData) > WORD_CLASS:
+                if "名詞" in analizedData[WORD_CLASS]:
                     nouns.append(analizedData)
 
         return nouns
@@ -41,9 +44,9 @@ class MessageParser:
     def GetVerbData(self):
         verb = []
         for line in self.m.parse(self.sentence).splitlines():
-            analizedData = line.split('\t')
-            if len(analizedData) > 3:
-                if "動詞" in analizedData[3]:
+            analizedData = line.split(SEP_CHAR)
+            if len(analizedData) > WORD_CLASS:
+                if "動詞" in analizedData[WORD_CLASS]:
                     verb.append(analizedData)
 
         return verb
@@ -51,8 +54,8 @@ class MessageParser:
     def GetParse(self):
         parse = []
         for line in self.m.parse(self.sentence).splitlines():
-            analizedData = line.split('\t')
-            if len(analizedData) > 3:
+            analizedData = line.split(SEP_CHAR)
+            if len(analizedData) > WORD_CLASS:
                 parse.append(analizedData)
 
         return parse
