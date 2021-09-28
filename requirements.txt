@@ -4,3 +4,4 @@ mecab-python3==1.0.4
 urllib3==1.26.5
 websocket-client==0.44.0
 unidic-lite
+cabocha
