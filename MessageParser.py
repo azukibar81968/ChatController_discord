@@ -11,6 +11,34 @@ WORD_CLASS = 4
 class MessageParser:
 
     def __init__(self, sentence):
+        self.Parser = MecabWeapper(sentence)
+
+    def GetNouns(self):
+        return self.Parser.GetNouns()
+
+    def GetVerb(self):
+        return self.Parser.GetVerb()
+
+    def GetNounsData(self):
+        return self.Parser.GetNounsData()
+
+    def GetVerbData(self):
+        return self.Parser.GetVerbData()
+
+    def GetParse(self):
+        return self.Parser.GetParse()
+
+    def GetSentence(self):
+        return self.Parser.GetSentence()
+
+
+
+##########MeCabラッパー#############
+
+
+class MecabWeapper:
+
+    def __init__(self, sentence):
         self.sentence = sentence
         self.m = MeCab.Tagger()
 
@@ -66,9 +94,22 @@ class MessageParser:
     def GetSentence(self):
         return self.sentence
 
-##########CaBoChaラッパー#############
 
-    def gen_chunks(self, tree):
+##########CaBoChaラッパー#############
+class CabochaWrapper:
+
+    def __init__(self, sentence):
+        self.sentence = sentence
+        self.cp = CaboCha.Parser()  # パーサー
+        self.tree = self.cp.parse(sentence)  # 構文木を構築
+        self.chunks = self.gen_chunks()
+        
+        return
+
+    def get_raw_sentence(self):
+        return self.sentence
+
+    def gen_chunks(self):
         """
         構文木treeからチャンクの辞書を生成する
         """
@@ -76,7 +117,7 @@ class MessageParser:
         key = 0  # intにしているがこれはChunk.linkの値で辿れるようにしている
 
         for i in range(tree.size()):  # ツリーのサイズだけ回す
-            tok = tree.token(i)  # トークンを得る
+            tok = self.tree.token(i)  # トークンを得る
             if tok.chunk:  # トークンがチャンクを持っていたら
                 chunks[key] = tok.chunk  # チャンクを辞書に追加する
                 key += 1
@@ -116,11 +157,21 @@ class MessageParser:
 
         return toks
 
+    def get_linking_chunks(self,chunks, chunk):
+        """
+        自分にリンクを張っているチャンク列を得る
+        """
+        result = []
 
-    def analyze_verb_pronoun_relation(self, tree, chunks, chunk):
-        print(tree.toString(CaboCha.FORMAT_XML))
+        for i in chunks.values():
+            if i.link >= 0:
+                if chunks[i.link] == chunk:
+                    result.append(i)
+        return result
+
+    def analyze_verb_pronoun_relation(self, chunks, chunk):
         # 引数chunkからトークン列を得る
-        verb_toks = self.get_toks_by_chunk(tree, chunk)
+        verb_toks = self.get_toks_by_chunk(self.tree, chunk)
         if not len(verb_toks):
             return "NONE: no token list"
 
@@ -130,50 +181,60 @@ class MessageParser:
             return "NONE: no verb token"
         if not verb_tok.chunk:
             return "NONE: chunk unavailable"
-        if verb_tok.chunk.link < 0:  # チャンクにリンクがない
-            return "NONE: no link"
 
-        # 動詞のチャンクにつながっているチャンクを得る
-        subject_chunk = chunks[verb_tok.chunk.link]
-        subject_toks = self.get_toks_by_chunk(tree, subject_chunk)  # トークン列を得る
-        if not len(subject_toks):  # トークン列が空
-            return "NONE: no tokens in linked chunk"
 
-        # トークン列から名詞のトークンを得る
-        subject_tok = self.find_pos(subject_toks,"名詞")
-        if not subject_tok:  # 見つからなかった
-            return "NONE: no noun in linked token list"
+        # 動詞のチャンクにリンクを張っているチャンク列を得る
+        subject_chunks = self.get_linking_chunks(chunks, chunk)
+        if not len(subject_chunks):
+            return "NONE: there is no chunks link to verb"
 
-        verb_surface = verb_tok.surface  # 動詞の表層形
+        for subject_chunk in subject_chunks:
+            subject_toks = self.get_toks_by_chunk(self.tree, subject_chunk)  # トークン列を得る
+            if not len(subject_toks):  # トークン列が空
+                return "NONE: no tokens in linked chunk"
 
-        return verb_surface
+            # トークン列から名詞のトークンを得る
+            subject_tok = self.find_pos(subject_toks,"名詞")
+            post_positional_perticle_tok = self.find_pos(subject_toks,"助詞")
+            if not subject_tok:  # 見つからなかった
+                continue
+            if post_positional_perticle_tok.surface != "を":
+                continue
 
-    def cabochaTester(self,sentence):
-        cp = CaboCha.Parser()  # パーサー
-        tree = cp.parse(sentence)  # 構文木を構築
 
-        # チャンクの辞書を作成
-        chunks = self.gen_chunks(tree)
+            subject_surface = subject_tok.surface  # 動詞の表層形
 
-        for chunk in chunks.values():
-            r = self.analyze_verb_pronoun_relation(tree, chunks, chunk)
-            if r:
-                print(r)
-
+        return subject_surface
 
 
 if __name__ == "__main__":
     p = MessageParser("エアコンつけて！！")
 
-    # print("名詞---")
-    # print(p.GetNouns())
-    # print("動詞---")
-    # print(p.GetVerb())
-    # print("---")
-    # print(p.GetParse())
-    # print(p.GetSentence())
+    print("名詞---")
+    print(p.GetNouns())
+    print("動詞---")
+    print(p.GetVerb())
+    print("---")
+    print(p.GetParse())
+    print(p.GetSentence())
 
-    while(1):
-        print(">>", end = " ")
-        ip = input()
-        print(p.cabochaTester(ip))
+    # while(1):
+    #     print(">>", end = " ")
+    #     ip = input()
+    #     print(p.cabochaTester(ip))
+
+
+    # def cabochaTester(self,sentence):
+    #     cp = CaboCha.Parser()  # パーサー
+    #     tree = cp.parse(sentence)  # 構文木を構築
+    #     print(tree.toString(CaboCha.FORMAT_XML))
+
+    #     # チャンクの辞書を作成
+    #     chunks = self.gen_chunks(tree)
+        
+    #     for chunk in chunks.values():
+    #         r = self.analyze_verb_pronoun_relation(tree, chunks, chunk)
+    #         if r:
+    #             toks = self.get_toks_by_chunk(tree,chunk)
+    #             print(toks[0].surface + ": " + r)
+
