@@ -14,22 +14,25 @@ class MessageParser:
         self.Parser = MecabWeapper(sentence)
 
     def GetNouns(self):
+        """
+        名詞の一覧を得る
+        """
         return self.Parser.GetNouns()
 
     def GetVerb(self):
+        """
+        動詞の一覧を得る
+        """
         return self.Parser.GetVerb()
-
-    def GetNounsData(self):
-        return self.Parser.GetNounsData()
-
-    def GetVerbData(self):
-        return self.Parser.GetVerbData()
-
-    def GetParse(self):
-        return self.Parser.GetParse()
 
     def GetSentence(self):
         return self.Parser.GetSentence()
+
+    def GetRelatedSubject(self,verb):
+        return "NO DATA"
+
+    def GetRelatedObject(self,verb):
+        return "NO DATA"
 
 
 
@@ -42,7 +45,7 @@ class MecabWeapper:
         self.sentence = sentence
         self.m = MeCab.Tagger()
 
-    def GetNouns(self):
+    def GetNouns(self):#名詞の一覧を得る
         nouns = []
         for line in self.m.parse(self.sentence).splitlines():
             analizedData = line.split(SEP_CHAR)
@@ -52,7 +55,7 @@ class MecabWeapper:
 
         return nouns
 
-    def GetVerb(self):
+    def GetVerb(self):#動詞の一覧を得る
         verb = []
         for line in self.m.parse(self.sentence).splitlines():
             analizedData = line.split(SEP_CHAR)
@@ -62,7 +65,7 @@ class MecabWeapper:
                     verb.append(analizedData[0])
         return verb
 
-    def GetNounsData(self):
+    def GetNounsData(self):#名詞の詳細の一覧を得る
         nouns = []
         for line in self.m.parse(self.sentence).splitlines():
             analizedData = line.split(SEP_CHAR)
@@ -72,7 +75,7 @@ class MecabWeapper:
 
         return nouns
 
-    def GetVerbData(self):
+    def GetVerbData(self):#動詞の詳細の一覧を得る
         verb = []
         for line in self.m.parse(self.sentence).splitlines():
             analizedData = line.split(SEP_CHAR)
@@ -82,7 +85,7 @@ class MecabWeapper:
 
         return verb
 
-    def GetParse(self):
+    def GetParse(self):#パースデータ全体を得る
         parse = []
         for line in self.m.parse(self.sentence).splitlines():
             analizedData = line.split(SEP_CHAR)
@@ -91,7 +94,7 @@ class MecabWeapper:
 
         return parse
 
-    def GetSentence(self):
+    def GetSentence(self):#元の文を返す
         return self.sentence
 
 
@@ -215,7 +218,7 @@ if __name__ == "__main__":
     print("動詞---")
     print(p.GetVerb())
     print("---")
-    print(p.GetParse())
+    # print(p.GetParse())
     print(p.GetSentence())
 
     # while(1):
