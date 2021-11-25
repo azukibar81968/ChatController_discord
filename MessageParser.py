@@ -26,6 +26,12 @@ class MessageParser:
         """
         return self.Parser.get_verbs()
 
+    def GetSymbol(self):
+        """
+        記号(?とか)の一覧を得る
+        """
+        return self.Parser.get_symbols()
+
     def GetSentence(self):
         """
         元の文を得る
@@ -39,7 +45,7 @@ class MessageParser:
         result = {}
         verbs = self.Parser.get_verbs_toks()
         for i in verbs:
-            objects = self.Parser.get_verb_object(i)
+            objects = self.Parser.get_verb_object_pair(i)
             if i.surface in result:
                 result[i.surface].append(objects)
             else:
@@ -48,6 +54,32 @@ class MessageParser:
 
         return result
 
+    def GetTurgetVerb(self, turget):
+        """
+        turgetと一致する語を含むChunkがかかっている動詞句を得る
+        """
+        resultList = self.Parser.get_verb_by_obj(turget)
+        return resultList
+
+    def IsContainTurget(self,turget):
+        resultList = self.Parser.find_turget(turget)
+        if len(resultList) == 0:
+            return False
+        else:
+            return True            
+
+    def GetNumDataList(self):
+        result = []
+        numDataList = self.Parser.get_num_data()
+        for i in numDataList:
+            classifier_surf = i[1].surface
+            try:
+                num_surf = int(i[0].surface)
+            except:
+                continue
+            result.append((num_surf,classifier_surf))
+
+        return result
 
 ##########MeCabラッパー#############
 
@@ -118,11 +150,26 @@ class CabochaWrapper:
         self.sentence = sentence
         self.cp = CaboCha.Parser()  # パーサー
         self.tree = self.cp.parse(sentence)  # 構文木を構築
+        self.toks = self.get_toks()
         self.chunks = self.gen_chunks()
 
         return
 
+    def get_toks(self):
+        """
+        treeからtoken列を作る
+        """
+        toks = []
+
+        for i in range(self.tree.size()):  # ツリーのサイズだけ回す
+            tok = self.tree.token(i)  # トークンを得る
+            toks.append(tok)
+        return toks       
+
     def get_nouns(self):
+        """
+        名詞の表層系の一覧を作る
+        """
         toks = []
 
         for i in range(self.tree.size()):  # ツリーのサイズだけ回す
@@ -138,6 +185,9 @@ class CabochaWrapper:
         return result
 
     def get_nouns_tok(self):
+        """
+        名詞のtokenの一覧を作る
+        """
         toks = []
 
         for i in range(self.tree.size()):  # ツリーのサイズだけ回す
@@ -153,6 +203,9 @@ class CabochaWrapper:
         return result
 
     def get_verbs(self):
+        """
+        動詞の表層系の一覧を得る
+        """
         toks = []
 
         for i in range(self.tree.size()):  # ツリーのサイズだけ回す
@@ -167,7 +220,12 @@ class CabochaWrapper:
 
         return result
 
+
     def get_verbs_toks(self):
+        """
+        動詞のtokenの一覧を得る
+        """
+
         toks = []
 
         for i in range(self.tree.size()):  # ツリーのサイズだけ回す
@@ -175,6 +233,44 @@ class CabochaWrapper:
             toks.append(tok)
 
         toks = self.find_pos(toks, "動詞")
+
+        result = []
+        for j in toks:
+            result.append(j)
+
+        return result
+
+    def get_symbols(self):
+        """
+        記号の表層系の一覧を得る
+        """
+
+        toks = []
+
+        for i in range(self.tree.size()):  # ツリーのサイズだけ回す
+            tok = self.tree.token(i)  # トークンを得る
+            toks.append(tok)
+
+        toks = self.find_pos(toks, "記号")
+
+        result = []
+        for j in toks:
+            result.append(j.surface)
+
+        return result
+
+    def get_symbols(self):
+        """
+        記号のtokenの一覧を得る
+        """
+
+        toks = []
+
+        for i in range(self.tree.size()):  # ツリーのサイズだけ回す
+            tok = self.tree.token(i)  # トークンを得る
+            toks.append(tok)
+
+        toks = self.find_pos(toks, "記号")
 
         result = []
         for j in toks:
@@ -247,13 +343,30 @@ class CabochaWrapper:
         return result
 
     def is_object_chunk(self, chunk):
+        """
+        目的格かチェックする
+        """
         toks = self.get_toks_by_chunk(chunk)
         for i in toks:
             if i.surface == "を":
                 return True
         return False
 
-    def get_verb_object(self, verb_tok):
+    def is_verb_chunk(self, chunk):
+        """
+        動詞格かチェックする
+        """
+        toks = self.get_toks_by_chunk(chunk)
+        buf = self.find_pos(toks,"動詞")
+        if len(buf) != 0:
+            return True
+        else:
+            return False
+
+    def get_verb_object_pair(self, verb_tok):
+        """
+        動詞と、対応する目的格のペアの一覧を得る
+        """
         # verb_tokの所属するChunkを得る
         chunk = verb_tok.chunk
 
@@ -287,24 +400,82 @@ class CabochaWrapper:
             
         return object_surfaces
 
+    def get_num_data(self):
+        """
+        28度や15時などの数字を含むChunkの数値の数詞を取る
+        (数,助数詞)のタプル列を返す
+        """
+        results = []
+        for _,chunk in self.chunks.items():  # ツリーのサイズだけ回す
+            toks = self.get_toks_by_chunk(chunk)
+            numTok = self.find_pos(toks,"数")
+            classifierTok = self.find_pos(toks,"助数詞")
+            if len(numTok) != 0 and len(classifierTok) != 0:
+                results.append((numTok[0], classifierTok[0]))
+
+        return results
+
+    def find_turget(self, turget):
+        """
+        turgetのsurfaceを持つトークンを探す
+        """
+        results = []
+        for tok in self.toks:
+            if turget == tok.surface:
+                results.append(tok)
+
+        return results
+
+
+    def get_verb_by_obj(self,turget):
+        """
+        目的格からかかる動詞を探す
+        """
+
+        ans = []
+        turget_toks = self.find_turget(turget)
+        for turget_tok in turget_toks:
+            if turget_tok.chunk.link == -1:
+                return ans
+                
+            verbChunk = self.chunks[turget_tok.chunk.link] 
+
+            if self.is_verb_chunk(verbChunk) == False:
+                print("not verb!!")
+                continue
+            else:
+                ans.append(self.find_pos(self.get_toks_by_chunk(verbChunk),"動詞")[0].surface)
+
+        return ans
+        
 
 if __name__ == "__main__":
-    p = MessageParser("家を出たらエアコンと電気を消して！！")
+    p = MessageParser("15時16分にエアコンを28度で焚くようにして！！")
 
     print(p.Parser.chunks)
+
+    print(p.Parser.tree.toString(CaboCha.FORMAT_XML))
 
     print("名詞---")
     print(p.GetNouns())
     print("動詞---")
     print(p.GetVerb())
-    print("動詞：目的語---")
-    print(p.GetRelatedObject())
+
+    p = MessageParser("15時16分にエアコンを28度で焚くようにして！！")
 
     print("---")
+    print(p.IsContainTurget("エアコン"))
+    print(p.GetTurgetVerb("エアコン"))
+    print("数詞：助数詞---")
+    print(p.GetNumDataList())
+
     print(p.Parser.tree.toString(CaboCha.FORMAT_XML))
 
     # print(p.GetParse())
     print(p.GetSentence())
+
+
+
 
     # while(1):
     #     print(">>", end = " ")
