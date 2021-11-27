@@ -26,7 +26,7 @@ class Container:
         self._optionList = {} #need to add task
 
     def compile(self): #need to override
-        # <task>(<option>:<container>,<option>:<container>) の文字列を返すようにする
+        #<task>(<option>:<container>,<option>:<container>)の文字列を返すようにする
         return ""
 
     def _calcSelfScore(self): #need to override
@@ -95,7 +95,8 @@ class airconditionerActionOn(Container):
             ),
             "time": ContainerList(
                 airconditionerTimeAM(message),
-                airconditionerTimePM(message)
+                airconditionerTimePM(message),
+                airconditionerTimeNum(message)
             ),
             "mode": ContainerList(
                 airconditionerModeHot(message),
@@ -132,7 +133,8 @@ class airconditionerActionOff(Container):
         self._optionList = {
             "time": ContainerList(
                 airconditionerTimeAM(message),
-                airconditionerTimePM(message)
+                airconditionerTimePM(message),
+                airconditionerTimeNum(message)
             )
         }
         self._evalBestContainer()
@@ -250,24 +252,55 @@ class airconditionerTimePM(Container):
     def compile(self):
         return "PM"
 
+class airconditionerTimeNum(Container):
+    def __init__(self, message):
+        super().__init__(message)
+        self._optionList = {}
+        self._evalBestContainer()
+        self._hour = 0
+        self._minute = 0
+
+
+    def calcScore(self):
+        mp = MessageParser.MessageParser(self.message)
+        numDataList = mp.GetNumDataList()
+
+        score = 0
+        for i in numDataList:
+            if i[1] == "時" and 0 <= i[0] and i[0] <= 24:
+                score += 1
+                self._hour = i[0]
+            if i[1] == "分" and 0 <= i[0] and i[0] <= 60:
+                score += 1
+                self._minute = i[0]
+        return score
+
+    def compile(self):
+        return "{ hour :" + str(self._hour) + " , minute : " + str(self._minute) + " }"
+
 
 class airconditionerTemp(Container):
     def __init__(self, message):
         super().__init__(message)
         self._optionList = {}
         self._evalBestContainer()
+        self._temp = -1
 
     def calcScore(self):
         mp = MessageParser.MessageParser(self.message)
-        score = 0
+        numDataList = mp.GetNumDataList()
 
-        if mp.IsContainTurget("度"):
-            score = 1
+        score = 0
+        for i in numDataList:
+            if i[1] == "度":
+                score = 1
+                self._temp = i[0]
+
 
         return score
 
     def compile(self):
-        return "28"
+        return str(self._temp)
 
 
 
@@ -284,7 +317,7 @@ if __name__ == "__main__":
 
     print("----------")
 
-    text02 = "午前になったら28度の暖房でエアコンをつけておいてくれるかな？"
+    text02 = "ね、22時30分になったら21度の暖房でエアコンをつけておいてくれるかな？"
     print(text02)
     container = airConditionerCard(text02)
     print(container.compile())
