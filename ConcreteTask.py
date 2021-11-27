@@ -3,19 +3,25 @@ import DealTaskInterface
 import TaskIDInterface
 import MessageParser
 from abc import ABC
+import json
 
 SCORE_GLOBAL = 1
+SCORE_EQUAL = 0
 
 class ContainerList:
     def __init__(self, *containers):
         self._ContainerList = containers
         self._BestContainerIndex = -1
+        self._unidentifiableFlg = False
 
     def setIndex(self, ind):
         self._BestContainerIndex = ind
 
     def getBestContainer(self):
-        return self._ContainerList[self._BestContainerIndex]
+        if self._BestContainerIndex >= 0:
+            return self._ContainerList[self._BestContainerIndex]
+        else:
+            return VoidContainer("")
 
     def getContainers(self):
         return self._ContainerList
@@ -24,40 +30,93 @@ class Container:
     def __init__(self, message):
         self.message = message
         self._optionList = {} #need to add task
+        self._ContainerName = "" #need to edit to ContainerName (ex: temp)
 
-    def compile(self): #need to override
+    def compile(self): #DON'T override
         #<task>(<option>:<container>,<option>:<container>)の文字列を返すようにする
-        return ""
 
-    def _calcSelfScore(self): #need to override
-        #messageに対する自身のスコアを返す
-        return 0
+        optionList = []
+        for optionName, optionContainerList in self._optionList.items():
+            optionContainer = optionContainerList.getBestContainer()
+            if optionContainer._ContainerName == "UNIDENTIFIABLE":
+                if optionName[0] == "?":
+                    continue
 
-    def _evalBestContainer(self):
+            optionList.append({optionName : optionContainer.compile()})
+
+
+        compileDict = {
+            "head" : self._ContainerName,
+            "option" : optionList
+        }
+ 
+        return json.dumps(compileDict)
+
+    def _evalBestContainer(self):#DON'T override
 
         for option, containerList in self._optionList.items():
             maxScore = -1
+            minDiff = 9999999999999999999999999999999
             cur = -1
             cnt = 0
 
+
             for container in containerList.getContainers():
-                if maxScore < container.calcScore():
-                    maxScore = container.calcScore()
+                containerScore =  container.calcScore()
+                if maxScore < containerScore:
+                    maxScore = containerScore
                     cur = cnt
 
                 cnt += 1
 
+            for container in containerList.getContainers():
+                containerScore = container.calcScore()
+                if minDiff > abs(maxScore - containerScore) and 0 < abs(maxScore - containerScore):
+                    minDiff = abs(maxScore - containerScore)
+
+
+            #print("option :: " + option + "---mindif = " + str(minDiff))
+            if minDiff < SCORE_EQUAL:
+                #print("score equal!!!!!")
+                cur = -1
+            if maxScore == 0:
+                #print("score zero!!!!!")
+                cur = -1
+
+
             self._optionList[option].setIndex(cur)
             
 
-    def calcScore(self):
+    def calcScore(self):#DON'T override
         score = 0
         for _, containerList in self._optionList.items(): #自分のContainerのスコアを全て計算
             optionScore = containerList.getBestContainer().calcScore()
             score += optionScore
 
         score += self._calcSelfScore() #自分のスコアを加算
+        #print("container name = " + self._ContainerName + "::: score = " + str(score))
         return score
+
+    def _calcSelfScore(self): #need to override
+        #messageに対する自身のスコアを返す
+        return 0
+
+
+
+class VoidContainer(Container):
+    def __init__(self, message):
+        super().__init__(message)
+        self._optionList = {}
+        self._ContainerName = "UNIDENTIFIABLE"
+
+        self._evalBestContainer()
+
+    def _calcSelfScore(self):
+        return 0
+
+    def compile(self):
+        return "UNIDENTIFIABLE"
+
 
 
 
@@ -70,6 +129,8 @@ class airConditionerCard(Container):
                 airconditionerActionOn(message),
             )
         }
+        self._ContainerName = "airconditioner"
+
         self._evalBestContainer()
 
     def _calcSelfScore(self):
@@ -81,19 +142,16 @@ class airConditionerCard(Container):
                 
         return score
 
-    def compile(self):
-        res = "airconditioner ( action :" + self._optionList["action"].getBestContainer().compile() + ")"
-        return res
 
 
 class airconditionerActionOn(Container):
     def __init__(self, message):
         super().__init__(message)
         self._optionList = {
-            "temp": ContainerList(
+            "?temp": ContainerList(
                 airconditionerTemp(message)
             ),
-            "time": ContainerList(
+            "?time": ContainerList(
                 airconditionerTimeAM(message),
                 airconditionerTimePM(message),
                 airconditionerTimeNum(message)
@@ -104,6 +162,8 @@ class airconditionerActionOn(Container):
                 airconditionerModeHumid(message)
             )
         }
+        self._ContainerName = "on"
+
         self._evalBestContainer()
 
     def _calcSelfScore(self):
@@ -117,26 +177,17 @@ class airconditionerActionOn(Container):
 
         return score
         
-
-
-    def compile(self):
-        timeCom = self._optionList["time"].getBestContainer().compile()
-        tempCom = self._optionList["temp"].getBestContainer().compile()
-        modeCom = self._optionList["mode"].getBestContainer().compile()
-        res = "on ( time : " + timeCom + ", temp : " + tempCom + ", mode : " + modeCom + ")"
-        return res
-
-
 class airconditionerActionOff(Container):
     def __init__(self, message):
         super().__init__(message)
         self._optionList = {
-            "time": ContainerList(
+            "?time": ContainerList(
                 airconditionerTimeAM(message),
                 airconditionerTimePM(message),
                 airconditionerTimeNum(message)
             )
         }
+        self._ContainerName = "off"
         self._evalBestContainer()
 
     def _calcSelfScore(self):
@@ -149,22 +200,15 @@ class airconditionerActionOff(Container):
             score = 1
 
         return score
-        
-
-
-    def compile(self):
-        timeCom = self._optionList["time"].getBestContainer().compile()
-        res = "off ( time : " + timeCom + ")"
-        return res
-
-
 
 
 class airconditionerModeCool(Container):
     def __init__(self, message):
         super().__init__(message)
         self._optionList = {}
+        self._ContainerName = "cool"
         self._evalBestContainer()
+        
 
     def _calcSelfScore(self):
         mp = MessageParser.MessageParser(self.message)
@@ -182,8 +226,9 @@ class airconditionerModeHot(Container):
     def __init__(self, message):
         super().__init__(message)
         self._optionList = {}
+        self._ContainerName = "hot"
 
-    def calcScore(self):
+    def _calcSelfScore(self):
         mp = MessageParser.MessageParser(self.message)
         score = 0
 
@@ -201,9 +246,10 @@ class airconditionerModeHumid(Container):
     def __init__(self, message):
         super().__init__(message)
         self._optionList = {}
+        self._ContainerName = "humid"
         self._evalBestContainer()
 
-    def calcScore(self):
+    def _calcSelfScore(self):
         mp = MessageParser.MessageParser(self.message)
         score = 0
 
@@ -213,16 +259,17 @@ class airconditionerModeHumid(Container):
         return score
 
     def compile(self):
-        return "hot"
+        return "humid"
 
 
 class airconditionerTimeAM(Container):
     def __init__(self, message):
         super().__init__(message)
         self._optionList = {}
+        self._ContainerName = "AM"
         self._evalBestContainer()
 
-    def calcScore(self):
+    def _calcSelfScore(self):
         mp = MessageParser.MessageParser(self.message)
         score = 0
         if mp.IsContainTurget("午前"):
@@ -238,9 +285,10 @@ class airconditionerTimePM(Container):
     def __init__(self, message):
         super().__init__(message)
         self._optionList = {}
+        self._ContainerName = "PM"
         self._evalBestContainer()
 
-    def calcScore(self):
+    def _calcSelfScore(self):
         mp = MessageParser.MessageParser(self.message)
         score = 0
 
@@ -255,29 +303,66 @@ class airconditionerTimePM(Container):
 class airconditionerTimeNum(Container):
     def __init__(self, message):
         super().__init__(message)
+        self._optionList = {
+            "hour": ContainerList(
+                airconditionerHour(message)
+            ),
+            "?minute": ContainerList(
+                airconditionerMinute(message)
+            )
+        }
+        self._ContainerName = "TimeNum"
+        self._evalBestContainer()
+
+
+    def _calcSelfScore(self):
+        score = 0
+        return score
+
+
+class airconditionerHour(Container):
+    def __init__(self, message):
+        super().__init__(message)
         self._optionList = {}
         self._evalBestContainer()
-        self._hour = 0
-        self._minute = 0
+        self._hour = -1
 
-
-    def calcScore(self):
+    def _calcSelfScore(self):
         mp = MessageParser.MessageParser(self.message)
         numDataList = mp.GetNumDataList()
 
         score = 0
         for i in numDataList:
             if i[1] == "時" and 0 <= i[0] and i[0] <= 24:
-                score += 1
+                score = 1
                 self._hour = i[0]
-            if i[1] == "分" and 0 <= i[0] and i[0] <= 60:
-                score += 1
-                self._minute = i[0]
         return score
 
     def compile(self):
-        return "{ hour :" + str(self._hour) + " , minute : " + str(self._minute) + " }"
+        return str(self._hour)
 
+
+class airconditionerMinute(Container):
+    def __init__(self, message):
+        super().__init__(message)
+        self._optionList = {}
+        self._evalBestContainer()
+        self._minute = -1
+
+    def _calcSelfScore(self):
+        mp = MessageParser.MessageParser(self.message)
+        numDataList = mp.GetNumDataList()
+
+        score = 0
+        for i in numDataList:
+            if i[1] == "分" and 0 <= i[0] and i[0] <= 60:
+                score = 1
+                self._minute = i[0]
+
+        return score
+
+    def compile(self):
+        return str(self._minute)
 
 class airconditionerTemp(Container):
     def __init__(self, message):
@@ -286,7 +371,7 @@ class airconditionerTemp(Container):
         self._evalBestContainer()
         self._temp = -1
 
-    def calcScore(self):
+    def _calcSelfScore(self):
         mp = MessageParser.MessageParser(self.message)
         numDataList = mp.GetNumDataList()
 
@@ -325,6 +410,13 @@ if __name__ == "__main__":
     print("----------")
 
     text02 = "午前になったら28度の冷房でエアコンをつけておいてくれる？"
+    print(text02)
+    container = airConditionerCard(text02)
+    print(container.compile())
+
+    print("----------")
+
+    text02 = "エアコンをつけて"
     print(text02)
     container = airConditionerCard(text02)
     print(container.compile())
@@ -441,3 +533,7 @@ class turnOffLight(ScoreingInterface.ScoreingInterface, DealTaskInterface.DealTa
 
     def DealTask(self):
         print("task deal...   Turn off the light")
+
+
+
+{"head": "airconditioner", "opttion": [{"action": "{\"head\": \"on\", \"opttion\": [{\"temp\": \"21\"}, {\"time\": \"{ hour :22 , minute : 30 }\"}, {\"mode\": \"hot\"}]}"}]}
