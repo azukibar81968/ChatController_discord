@@ -7,6 +7,57 @@ import json
 
 SCORE_GLOBAL = 1
 SCORE_EQUAL = 0
+############
+
+"""""""""""
+###structure of container###
+
+container = {
+    'head' : '<containerName>',
+    'option' : 
+    {
+        <option1> : container,
+        <option2> : container,
+        ...
+        ...
+    }
+}
+
+ex:
+
+午前になったら28度の冷房でエアコンをつけておいてくれる？
+
+={
+	"head": "loot",
+	"option": {
+		"task": {
+			"head": "airconditioner",
+			"option": {
+				"action": {
+					"head": "on",
+					"option": {
+						"?temp": "28",
+						"?time": "AM",
+						"mode": "cool"
+					}
+				}
+			}
+		}
+	}
+}
+
+loot 
+  L task : airconditioner
+      L action : turnOn
+          L temp : 28度
+              L mode : Cool
+              L time : TimeNum
+                  L hour : 22
+                  L minute : 30
+
+"""""""""""
+
+############
 
 class ContainerList:
     def __init__(self, *containers):
@@ -35,22 +86,22 @@ class Container:
     def compile(self): #DON'T override
         #<task>(<option>:<container>,<option>:<container>)の文字列を返すようにする
 
-        optionList = []
+        optionDict = {}
         for optionName, optionContainerList in self._optionList.items():
             optionContainer = optionContainerList.getBestContainer()
             if optionContainer._ContainerName == "UNIDENTIFIABLE":
                 if optionName[0] == "?":
                     continue
 
-            optionList.append({optionName : optionContainer.compile()})
+            optionDict[optionName] = optionContainer.compile()
 
 
         compileDict = {
             "head" : self._ContainerName,
-            "option" : optionList
+            "option" : optionDict
         }
  
-        return json.dumps(compileDict)
+        return compileDict
 
     def _evalBestContainer(self):#DON'T override
 
@@ -118,9 +169,23 @@ class VoidContainer(Container):
         return "UNIDENTIFIABLE"
 
 
+class lootConditioner(Container):
+    def __init__(self, message):
+        super().__init__(message)
+        self._optionList = {
+            "task": ContainerList(
+                airConditioner(message),
+                light(message),
+            )
+        }
+        self._ContainerName = "loot"
+
+        self._evalBestContainer()
 
 
-class airConditionerCard(Container):
+
+######air conditioner######
+class airConditioner(Container):
     def __init__(self, message):
         super().__init__(message)
         self._optionList = {
@@ -152,9 +217,9 @@ class airconditionerActionOn(Container):
                 airconditionerTemp(message)
             ),
             "?time": ContainerList(
-                airconditionerTimeAM(message),
-                airconditionerTimePM(message),
-                airconditionerTimeNum(message)
+                timeAM(message),
+                timePM(message),
+                timeNum(message)
             ),
             "mode": ContainerList(
                 airconditionerModeHot(message),
@@ -182,9 +247,9 @@ class airconditionerActionOff(Container):
         super().__init__(message)
         self._optionList = {
             "?time": ContainerList(
-                airconditionerTimeAM(message),
-                airconditionerTimePM(message),
-                airconditionerTimeNum(message)
+                timeAM(message),
+                timePM(message),
+                timeNum(message)
             )
         }
         self._ContainerName = "off"
@@ -262,7 +327,7 @@ class airconditionerModeHumid(Container):
         return "humid"
 
 
-class airconditionerTimeAM(Container):
+class timeAM(Container):
     def __init__(self, message):
         super().__init__(message)
         self._optionList = {}
@@ -281,7 +346,7 @@ class airconditionerTimeAM(Container):
     def compile(self):
         return "AM"
 
-class airconditionerTimePM(Container):
+class timePM(Container):
     def __init__(self, message):
         super().__init__(message)
         self._optionList = {}
@@ -300,15 +365,15 @@ class airconditionerTimePM(Container):
     def compile(self):
         return "PM"
 
-class airconditionerTimeNum(Container):
+class timeNum(Container):
     def __init__(self, message):
         super().__init__(message)
         self._optionList = {
             "hour": ContainerList(
-                airconditionerHour(message)
+                timeNumHour(message)
             ),
             "?minute": ContainerList(
-                airconditionerMinute(message)
+                timeNumMinute(message)
             )
         }
         self._ContainerName = "TimeNum"
@@ -320,7 +385,7 @@ class airconditionerTimeNum(Container):
         return score
 
 
-class airconditionerHour(Container):
+class timeNumHour(Container):
     def __init__(self, message):
         super().__init__(message)
         self._optionList = {}
@@ -342,7 +407,7 @@ class airconditionerHour(Container):
         return str(self._hour)
 
 
-class airconditionerMinute(Container):
+class timeNumMinute(Container):
     def __init__(self, message):
         super().__init__(message)
         self._optionList = {}
@@ -388,6 +453,103 @@ class airconditionerTemp(Container):
         return str(self._temp)
 
 
+##### Light #####
+class light(Container):
+    def __init__(self, message):
+        super().__init__(message)
+        self._optionList = {
+            "action": ContainerList(
+                lightActionOff(message),
+                lightActionOn(message),
+            )
+        }
+        self._ContainerName = "light"
+
+        self._evalBestContainer()
+
+    def _calcSelfScore(self):
+        mp = MessageParser.MessageParser(self.message)
+        score = 0
+
+        if mp.IsContainTurget("電灯") or mp.IsContainTurget("電気") or mp.IsContainTurget("あかり") or mp.IsContainTurget("灯"):
+            score += 1
+                
+        return score
+
+
+
+class lightActionOn(Container):
+    def __init__(self, message):
+        super().__init__(message)
+        self._optionList = {
+            "?time": ContainerList(
+                timeAM(message),
+                timePM(message),
+                timeNum(message)
+            ),
+            "?mode": ContainerList(
+                lightModeNight(message)            )
+        }
+        self._ContainerName = "on"
+
+        self._evalBestContainer()
+
+    def _calcSelfScore(self):
+        mp = MessageParser.MessageParser(self.message)
+        score = 0
+        turgetVerbList = mp.GetTurgetVerb("電気")
+        turgetVerbList += mp.GetTurgetVerb("灯")
+        turgetVerbList += mp.GetTurgetVerb("あかり")
+        
+        if "つけ" in turgetVerbList:
+            score = 1
+
+        return score
+        
+class lightActionOff(Container):
+    def __init__(self, message):
+        super().__init__(message)
+        self._optionList = {
+            "?time": ContainerList(
+                timeAM(message),
+                timePM(message),
+                timeNum(message)
+            )
+        }
+        self._ContainerName = "off"
+        self._evalBestContainer()
+
+    def _calcSelfScore(self):
+        mp = MessageParser.MessageParser(self.message)
+        score = 0
+
+        turgetVerbList = mp.GetTurgetVerb("電気")
+        turgetVerbList += mp.GetTurgetVerb("灯")
+        turgetVerbList += mp.GetTurgetVerb("あかり")
+        if "消し" in turgetVerbList or "けし" in turgetVerbList:
+            score = 1
+
+        return score
+
+
+class lightModeNight(Container):
+    def __init__(self, message):
+        super().__init__(message)
+        self._optionList = {}
+        self._ContainerName = "night"
+        self._evalBestContainer()
+        
+
+    def _calcSelfScore(self):
+        mp = MessageParser.MessageParser(self.message)
+        score = 0
+
+        if mp.IsContainTurget("常夜灯") or mp.IsContainTurget("豆電"):
+            score = 1
+        return score
+
+    def compile(self):
+        return "night"
 
 
 
@@ -397,34 +559,59 @@ if __name__ == "__main__":
 
     text01 = "午後になったらエアコンを消しておいてちょうだい"
     print(text01)
-    container = airConditionerCard(text01)
+    container = lootConditioner(text01)
     print(container.compile())
 
     print("----------")
 
     text02 = "ね、22時30分になったら21度の暖房でエアコンをつけておいてくれるかな？"
     print(text02)
-    container = airConditionerCard(text02)
+    container = lootConditioner(text02)
     print(container.compile())
 
     print("----------")
 
     text02 = "午前になったら28度の冷房でエアコンをつけておいてくれる？"
     print(text02)
-    container = airConditionerCard(text02)
+    container = lootConditioner(text02)
     print(container.compile())
 
     print("----------")
 
     text02 = "エアコンをつけて"
     print(text02)
-    container = airConditionerCard(text02)
+    container = lootConditioner(text02)
+    print(container.compile())
+
+    print("----------")
+
+    text02 = "電気をつけて"
+    print(text02)
+    container = lootConditioner(text02)
+    print(container.compile())
+
+    print("----------")
+
+    text02 = "灯りを常夜灯でつけて"
+    print(text02)
+    container = lootConditioner(text02)
     print(container.compile())
 
 
 
+    print("----------")
 
+    text02 = "電気を10時になったらつけて"
+    print(text02)
+    container = lootConditioner(text02)
+    print(container.compile())
 
+    print("----------")
+
+    text02 = "エアコン暖房つけてよ"
+    print(text02)
+    container = lootConditioner(text02)
+    print(container.compile())
 
 
 
