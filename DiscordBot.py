@@ -5,7 +5,7 @@ import json
 
 
 # 自分のBotのアクセストークンに置き換えてください
-TOKEN = 'ODg3MjcyMjg0NjM5ODYyODI1.YUButQ.s0XCGRUJEB7SEcYMbA8nD2Zalj4'
+TOKEN = 'ODg3MjcyMjg0NjM5ODYyODI1.YUButQ.goVhRlH6NZRVxgyi_yQAhhWJD-A'
 client = discord.Client()
 ctrl = ChatController.ChatController()
 
@@ -21,7 +21,6 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    url = 'https://discord.com/api/webhooks/887658473268080700/wfKrhe-n7sJb4m71WOOdMWTo_j_demmmpkdKA9h-OqR-qkYiTmICvGDQKERCKuF66g0t'
 
     # メッセージ送信者がBotだった場合は無視する
     if message.author.bot:
@@ -29,20 +28,10 @@ async def on_message(message):
 
     if message.content == '/bot':
         await message.channel.send('Hello Test Bot')
-    replyList = ctrl.dealMessage(message.content)
-    for rep in replyList:
-        print(rep)
-        data = {
-            "content" : rep
-        }
-        jsondata = json.dumps(data)
-        jsonbyte = jsondata.encode('utf-8')
-        request = urllib.request.Request(url, jsonbyte)
+    ctrl.dealMessage(message.content)
 
-        request.add_header('User-Agent', 'curl/7.64.1')
-        request.add_header('Content-Type', 'application/json')
-        urllib.request.urlopen(request)
-    
+
+
 
 # Botの起動とDiscordサーバーへの接続
 if __name__ == "__main__":
