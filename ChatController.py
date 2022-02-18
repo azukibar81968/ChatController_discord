@@ -72,12 +72,27 @@ class ChatSequence(singleton.Singleton):
 class ChatEvent:
     def __init__(self):
         self._url = 'https://discord.com/api/webhooks/887658473268080700/wfKrhe-n7sJb4m71WOOdMWTo_j_demmmpkdKA9h-OqR-qkYiTmICvGDQKERCKuF66g0t'
+        self._url2 = 'https://discord.com/api/webhooks/915261800394661908/iFeYrBlqIM15QlQ8BumYpaaENiYl-InJ5EmGnCPprArHmkwGrTgoSjHeV3N-a-lROGTl'
         self._kadenConnector = switchbotConnenctor.SwitchBotConnector()
         return
     
     def deal(self, message):
         return ""
 
+
+    def makeReply2(self, rep):
+
+        print(rep)
+        data = {
+            "content" : rep
+        }
+        jsondata = json.dumps(data)
+        jsonbyte = jsondata.encode('utf-8')
+        request = urllib.request.Request(self._url, jsonbyte)
+
+        request.add_header('User-Agent', 'curl/7.64.1')
+        request.add_header('Content-Type', 'application/json')
+        urllib.request.urlopen(request)
 
     def makeReply(self, rep):
 
@@ -87,7 +102,7 @@ class ChatEvent:
         }
         jsondata = json.dumps(data)
         jsonbyte = jsondata.encode('utf-8')
-        request = urllib.request.Request(self._url, jsonbyte)
+        request = urllib.request.Request(self._url2, jsonbyte)
 
         request.add_header('User-Agent', 'curl/7.64.1')
         request.add_header('Content-Type', 'application/json')
@@ -190,5 +205,7 @@ class ChatEventLightStart(ChatEvent):
 
 
 if __name__ == "__main__":
-    ctrl = ChatController()
-    ctrl.dealMessage("エアコンの暖房26度でつけて！")
+    # ctrl = ChatController()
+    # ctrl.dealMessage("エアコンの暖房26度でつけて！")
+    chatbot = ChatEvent()
+    chatbot.makeReply2("は〜〜〜い")

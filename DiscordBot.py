@@ -5,7 +5,7 @@ import json
 
 
 # 自分のBotのアクセストークンに置き換えてください
-TOKEN = 'ODg3MjcyMjg0NjM5ODYyODI1.YUButQ.goVhRlH6NZRVxgyi_yQAhhWJD-A'
+TOKEN = 'c01db3cc128c595b0391875d41fd6ff6b659b2dccbfb5dd1c02c7381f892dc3c'
 client = discord.Client()
 ctrl = ChatController.ChatController()
 
