@@ -2,10 +2,12 @@ import discord
 import ChatController
 import urllib.request
 import json
+import asyncio
+import time
 
 
 # 自分のBotのアクセストークンに置き換えてください
-TOKEN = 'c01db3cc128c595b0391875d41fd6ff6b659b2dccbfb5dd1c02c7381f892dc3c'
+TOKEN = 'ODg3MjcyMjg0NjM5ODYyODI1.YUButQ.RTUqUFsJpJXX7waEsVshulJ3dGY'
 client = discord.Client()
 ctrl = ChatController.ChatController()
 
@@ -30,9 +32,19 @@ async def on_message(message):
         await message.channel.send('Hello Test Bot')
     ctrl.dealMessage(message.content)
 
+def hogehoge():
+    cnt = 0
+    while(1):
+        cnt += 1
+        time.sleep(1)
+        print("i = " + str(cnt))
 
 
 
 # Botの起動とDiscordサーバーへの接続
 if __name__ == "__main__":
+#    loop = asyncio.get_event_loop()
+#    loop.run_in_executor(None, hogehoge)
+
     client.run(TOKEN)
+

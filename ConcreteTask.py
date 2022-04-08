@@ -378,7 +378,11 @@ class timeNum(Container):
 
 
     def _calcSelfScore(self):
+
+        mp = MessageParser.MessageParser(self.message)
         score = 0
+        if mp.IsContainTurget("時"):
+            score = 2
         return score
 
 

@@ -138,8 +138,6 @@ class ChatEventAirConditionerStart(ChatEvent):
                 elif command["option"]["task"]["option"]["action"]["option"]["mode"] == "cool":
                     self.mode = "2"
 
-                print("unchi")
-
                 self.inputJson = {
                         "command": "setAll",
                         "parameter": self.temp + "," + self.mode + "," + self.fanspeed + "," + self.powerstate,
