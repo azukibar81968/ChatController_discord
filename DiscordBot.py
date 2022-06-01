@@ -5,9 +5,11 @@ import json
 import asyncio
 import time
 
+import os
 
 # 自分のBotのアクセストークンに置き換えてください
-TOKEN = 'ODg3MjcyMjg0NjM5ODYyODI1.YUButQ.RTUqUFsJpJXX7waEsVshulJ3dGY'
+discordbot_token_key = "KADEN_DISCORDBOT_TOKEN"
+TOKEN = os.environ[discordbot_token_key]
 client = discord.Client()
 ctrl = ChatController.ChatController()
 
@@ -31,14 +33,6 @@ async def on_message(message):
     if message.content == '/bot':
         await message.channel.send('Hello Test Bot')
     ctrl.dealMessage(message.content)
-
-def hogehoge():
-    cnt = 0
-    while(1):
-        cnt += 1
-        time.sleep(1)
-        print("i = " + str(cnt))
-
 
 
 # Botの起動とDiscordサーバーへの接続
