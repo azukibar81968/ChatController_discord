@@ -2,10 +2,11 @@ import discord
 import ChatController
 import urllib.request
 import json
-
+import os
 
 # 自分のBotのアクセストークンに置き換えてください
-TOKEN = 'ODg3MjcyMjg0NjM5ODYyODI1.YUButQ.s0XCGRUJEB7SEcYMbA8nD2Zalj4'
+tokne_key = "KADEN_DISCORDBOT_TOKEN"
+TOKEN = os.environ[tokne_key]
 client = discord.Client()
 ctrl = ChatController.ChatController()
 
