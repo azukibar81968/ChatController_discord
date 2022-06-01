@@ -22,7 +22,6 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    url = 'https://discord.com/api/webhooks/887658473268080700/wfKrhe-n7sJb4m71WOOdMWTo_j_demmmpkdKA9h-OqR-qkYiTmICvGDQKERCKuF66g0t'
 
     # メッセージ送信者がBotだった場合は無視する
     if message.author.bot:
@@ -30,21 +29,13 @@ async def on_message(message):
 
     if message.content == '/bot':
         await message.channel.send('Hello Test Bot')
-    replyList = ctrl.dealMessage(message.content)
-    for rep in replyList:
-        print(rep)
-        data = {
-            "content" : rep
-        }
-        jsondata = json.dumps(data)
-        jsonbyte = jsondata.encode('utf-8')
-        request = urllib.request.Request(url, jsonbyte)
+    ctrl.dealMessage(message.content)
 
-        request.add_header('User-Agent', 'curl/7.64.1')
-        request.add_header('Content-Type', 'application/json')
-        urllib.request.urlopen(request)
-    
 
 # Botの起動とDiscordサーバーへの接続
 if __name__ == "__main__":
+#    loop = asyncio.get_event_loop()
+#    loop.run_in_executor(None, hogehoge)
+
     client.run(TOKEN)
+
