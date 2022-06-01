@@ -32,7 +32,8 @@ class ChatController:
         self._dealer = ChatSequence()
 
     def dealMessage(self, message):
-        return self._dealer.dealMessage(message)
+        reply = self._dealer.dealMessage(message)
+        return reply
 
 
 
