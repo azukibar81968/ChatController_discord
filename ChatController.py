@@ -27,13 +27,52 @@ outputは
 """""
 
 
-class ChatController:
+class ChatControllerIF:
     def __init__(self):
-        self._dealer = ChatSequence()
+        self._dealer = ChatController()
 
     def dealMessage(self, message):
         reply = self._dealer.dealMessage(message)
         return reply
+
+
+class ChatController:
+    def __init__(self):
+        return
+
+    def dealMessage(self, message):
+        # メッセージがタスク志向なのか、雑談なのかを判別する
+        score = ConcreteTask.rootContainer(message).calcScore()
+        replyMaker = ReplyMaker()
+        if score >= 1: # タスク志向ならタスク志向処理モジュールにぶん投げて返信を取得する
+            replyMaker = dealTaskMessage()
+        else: # 雑談なら雑談処理モジュールにぶん投げて返信を取得する
+            replyMaker = dealChatMessage()
+
+        reply = replyMaker.dealMessage(message)
+        return reply
+
+
+class ReplyMaker:
+    def dealMessage(self, message):
+        return ""
+
+class dealTaskMessage(ReplyMaker):
+    def dealMessage(self, message):
+        command = ConcreteTask.rootContainer(message).compile()
+        switchbotConnenctor.KadenControll().deal(command)#commandからクエリを作成、送信
+        
+        return "はいよ〜"
+
+class dealChatMessage(ReplyMaker):
+    def dealMessage(self, message):
+        return "これは雑談の返信文だよ〜〜"
+
+
+
+
+##################################################################コレ以下は使わない##################################################################
+
 
 
 
@@ -70,141 +109,8 @@ class ChatSequence(singleton.Singleton):
             self.chatSequence.append(ChatEventReply01())
 
 
-class ChatEvent:
-    def __init__(self):
-        self._url = 'https://discord.com/api/webhooks/887658473268080700/wfKrhe-n7sJb4m71WOOdMWTo_j_demmmpkdKA9h-OqR-qkYiTmICvGDQKERCKuF66g0t'
-        self._url2 = 'https://discord.com/api/webhooks/915261800394661908/iFeYrBlqIM15QlQ8BumYpaaENiYl-InJ5EmGnCPprArHmkwGrTgoSjHeV3N-a-lROGTl'
-        self._kadenConnector = switchbotConnenctor.SwitchBotConnector()
-        return
-    
-    def deal(self, message):
-        return ""
-
-
-    def makeReply2(self, rep):
-
-        print(rep)
-        data = {
-            "content" : rep
-        }
-        jsondata = json.dumps(data)
-        jsonbyte = jsondata.encode('utf-8')
-        request = urllib.request.Request(self._url, jsonbyte)
-
-        request.add_header('User-Agent', 'curl/7.64.1')
-        request.add_header('Content-Type', 'application/json')
-        urllib.request.urlopen(request)
-
-    def makeReply(self, rep):
-
-        print(rep)
-        data = {
-            "content" : rep
-        }
-        jsondata = json.dumps(data)
-        jsonbyte = jsondata.encode('utf-8')
-        request = urllib.request.Request(self._url2, jsonbyte)
-
-        request.add_header('User-Agent', 'curl/7.64.1')
-        request.add_header('Content-Type', 'application/json')
-        urllib.request.urlopen(request)
-
-
-class ChatEventReply01(ChatEvent):
-    def deal(self):
-        return "いま忙しい...すまん、ちょっと待って"
-
-class ChatEventAirConditionerStart(ChatEvent):
-    def __init__(self, message):
-        self.message = message
-        self.mode = ""
-        self.fanspeed = ""
-        self.temp = ""
-        self.powerstate = ""
-        self.inputJson = {}
-        self.reply = ""
-        super().__init__()
-        
-
-    def deal(self):
-        command = ConcreteTask.lootConditioner(self.message).compile()
-        print(command)
-        try:
-            self.powerstate = command["option"]["task"]["option"]["action"]["head"]
-            if self.powerstate == "on":
-                self.fanspeed = "1" 
-                self.temp = command["option"]["task"]["option"]["action"]["option"]["?temp"]
-                if command["option"]["task"]["option"]["action"]["option"]["mode"] == "hot":
-                    self.mode = "5"
-                elif command["option"]["task"]["option"]["action"]["option"]["mode"] == "cool":
-                    self.mode = "2"
-
-                self.inputJson = {
-                        "command": "setAll",
-                        "parameter": self.temp + "," + self.mode + "," + self.fanspeed + "," + self.powerstate,
-                        "commandType": "command"
-                    }
-                self.reply = "エアコンつけたで〜"
-                
-            elif self.powerstate == "off":
-                self.inputJson = {
-                    "command": "turnOff",
-                    "commandType": "command"
-                }
-                self.reply = "エアコン消したで〜"
-                
-
-        except:
-            print("ERROR: aircon Commandの辞書見出しが不正です。")
-        
-        self.makeReply("エアコンつけたで〜")
-        self._kadenConnector.device_control(
-            self._kadenConnector.DEVICEID_airConditioner, 
-            self.inputJson
-        )
-        print(self.inputJson)
-
-
-class ChatEventLightStart(ChatEvent):
-    def __init__(self, message):
-        self.message = message
-        self.powerstate = ""
-        super().__init__()
-
-    def deal(self):
-        command = ConcreteTask.lootConditioner(self.message).compile()
-        print(command)
-        try:
-            self.powerstate = command["option"]["task"]["option"]["action"]["head"]
-        except:
-            print("ERROR: Commandの辞書見出しが不正です。")
-
-        if self.powerstate == "on":
-            self.makeReply("電気つけたで〜")
-            self._kadenConnector.device_control(
-                self._kadenConnector.DEVICEID_light, 
-                {
-                    "command": "turnOn",
-                    "commandType": "command"
-                }
-            )
-        elif self.powerstate == "off":
-
-            self.makeReply("電気消したで〜")
-            self._kadenConnector.device_control(
-                self._kadenConnector.DEVICEID_light, 
-                {
-                    "command": "turnOff",
-                    "commandType": "command"
-                }
-            )
-        
-
-
-
-
 if __name__ == "__main__":
-    # ctrl = ChatController()
+    # ctrl = ChatControllerIF()
     # ctrl.dealMessage("エアコンの暖房26度でつけて！")
     chatbot = ChatEvent()
     chatbot.makeReply2("は〜〜〜い")

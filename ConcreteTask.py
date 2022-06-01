@@ -166,7 +166,7 @@ class VoidContainer(Container):
         return "UNIDENTIFIABLE"
 
 
-class lootConditioner(Container):
+class rootContainer(Container):
     def __init__(self, message):
         super().__init__(message)
         self._optionList = {
@@ -560,42 +560,42 @@ if __name__ == "__main__":
 
     text01 = "午後になったらエアコンを消しておいてちょうだい"
     print(text01)
-    container = lootConditioner(text01)
+    container = rootContainer(text01)
     print(container.compile())
 
     print("----------")
 
     text02 = "ね、22時30分になったら21度の暖房でエアコンをつけておいてくれるかな？"
     print(text02)
-    container = lootConditioner(text02)
+    container = rootContainer(text02)
     print(container.compile())
 
     print("----------")
 
     text02 = "午前になったら28度の冷房でエアコンをつけておいてくれる？"
     print(text02)
-    container = lootConditioner(text02)
+    container = rootContainer(text02)
     print(container.compile())
 
     print("----------")
 
     text02 = "エアコンをつけて"
     print(text02)
-    container = lootConditioner(text02)
+    container = rootContainer(text02)
     print(container.compile())
 
     print("----------")
 
     text02 = "電気をつけて"
     print(text02)
-    container = lootConditioner(text02)
+    container = rootContainer(text02)
     print(container.compile())
 
     print("----------")
 
     text02 = "灯りを常夜灯でつけて"
     print(text02)
-    container = lootConditioner(text02)
+    container = rootContainer(text02)
     print(container.compile())
 
 
@@ -604,14 +604,14 @@ if __name__ == "__main__":
 
     text02 = "電気を10時になったらつけて"
     print(text02)
-    container = lootConditioner(text02)
+    container = rootContainer(text02)
     print(container.compile())
 
     print("----------")
 
     text02 = "エアコン暖房つけてよ"
     print(text02)
-    container = lootConditioner(text02)
+    container = rootContainer(text02)
     print(container.compile())
 
 

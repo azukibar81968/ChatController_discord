@@ -8,10 +8,10 @@ import os
 tokne_key = "KADEN_DISCORDBOT_TOKEN"
 TOKEN = os.environ[tokne_key]
 client = discord.Client()
-ctrl = ChatController.ChatController()
+ctrl = ChatController.ChatControllerIF()
 botUrlTable = json.load(open("botURL.json", 'r'))
 
-def makeReply(self, rep, botID):
+def makeReply(rep, botID):
 
     print(rep)
     data = {
@@ -19,7 +19,8 @@ def makeReply(self, rep, botID):
     }
     jsondata = json.dumps(data)
     jsonbyte = jsondata.encode('utf-8')
-    request = urllib.request.Request(botUrlTable["botID"], jsonbyte)#指定のボットを使って返信する
+    #print("url = " + botUrlTable[botID]) #web hook URL確認
+    request = urllib.request.Request(botUrlTable[botID], jsonbyte)#指定のボットを使って返信する
 
     request.add_header('User-Agent', 'curl/7.64.1')
     request.add_header('Content-Type', 'application/json')
@@ -47,7 +48,7 @@ async def on_message(message):
         await message.channel.send('Hello Test Bot')
 
     replyData = ctrl.dealMessage(message.content) #メッセージを処理
-    makeReply(replyData, "bot1")
+    makeReply(replyData, "bot2")
 
 
 
