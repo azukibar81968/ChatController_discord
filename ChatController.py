@@ -1,3 +1,4 @@
+from ChatGenerator import ChatGenerator
 import ConcreteTask
 import MessageParser
 import singleton
@@ -5,6 +6,7 @@ import MessageParser
 import json
 import urllib
 import switchbotConnenctor
+import ChatGenerator
 
 """""
 
@@ -38,18 +40,29 @@ class ChatControllerIF:
 
 class ChatController:
     def __init__(self):
+        self._messageList = []
+        self._user = "usr"
+        self._bot = "bot"
+
         return
 
     def dealMessage(self, message):
+        # messageListにログを追加
+        self._messageList.append((self._user, message))
+
         # メッセージがタスク志向なのか、雑談なのかを判別する
         score = ConcreteTask.rootContainer(message).calcScore()
+        reply = "DEFAULT MESSAGE"
         replyMaker = ReplyMaker()
         if score >= 1: # タスク志向ならタスク志向処理モジュールにぶん投げて返信を取得する
-            replyMaker = dealTaskMessage()
+            reply = dealTaskMessage().dealMessage(message)
         else: # 雑談なら雑談処理モジュールにぶん投げて返信を取得する
-            replyMaker = dealChatMessage()
+            reply = dealChatMessage().dealMessage(message, self._messageList)
 
-        reply = replyMaker.dealMessage(message)
+
+        # messageListにログを追加
+        self._messageList.append((self._bot, reply))
+
         return reply
 
 
@@ -65,8 +78,14 @@ class dealTaskMessage(ReplyMaker):
         return "はいよ〜"
 
 class dealChatMessage(ReplyMaker):
-    def dealMessage(self, message):
-        return "これは雑談の返信文だよ〜〜"
+    def dealMessage(self, message, messageLog):
+        # 雑談生成クエリを作る
+        queryList = messageLog[:3]
+        # 雑談生成モジュールにクエリを投げる
+        generator = ChatGenerator.ChatGenerator()
+        reply = generator.getReply(queryList)
+        # リプライを生成して返す
+        return reply
 
 
 
