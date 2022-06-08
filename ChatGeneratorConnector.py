@@ -16,7 +16,7 @@ class ChatGenerator:
 
         body = self.translateQuery(query)
         inputJson = json.dumps(body)
-        print("chat generation input = " + str(inputJson)) # 入力
+        print("chat generation input = " + str(body)) # 入力
         res = requests.post(url, data=inputJson, headers=headers)
         print("chat generation output = " + str(res.text)) # 結果
         
@@ -38,7 +38,7 @@ class ChatGenerator:
 
         chatGeneratorQuery = {}
         speakerCnt = dict.fromkeys(userDict, 1)
-        query.reverse()
+#        query.reverse()
 
         print("userDict = " + str(userDict))
 

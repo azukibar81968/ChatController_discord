@@ -61,6 +61,7 @@ class ChatController:
 
         # messageListにログを追加
         self._messageList.append((self._bot, reply))
+        print("messageLog = " + str(self._messageList))
 
         return reply
 
@@ -79,7 +80,7 @@ class dealTaskMessage(ReplyMaker):
 class dealChatMessage(ReplyMaker):
     def dealMessage(self, message, messageLog):
         # 雑談生成クエリを作る
-        queryList = messageLog[:3]
+        queryList = messageLog[-3:]
         # 雑談生成モジュールにクエリを投げる
         generator = ChatGeneratorConnector.ChatGenerator()
         reply = generator.getReply(queryList)
