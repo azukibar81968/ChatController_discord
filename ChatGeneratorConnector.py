@@ -1,4 +1,4 @@
-import urllib.request
+import requests
 import json
 
 from regex import P
@@ -8,11 +8,21 @@ class ChatGenerator:
         self._chatGeneratorURL = "http://172.17.0.2:5000/"
 
     def getReply(self, query):
+        headers = {
+            # ヘッダー
+            'Content-Type': 'application/json; charset: utf8',
+        }
+        url = self._chatGeneratorURL
+
+        body = self.translateQuery(query)
+        inputJson = json.dumps(body)
+        print("chat generation input = " + str(inputJson)) # 入力
+        res = requests.post(url, data=inputJson, headers=headers)
+        print("chat generation output = " + str(res.text)) # 結果
         
+        return res.text
 
-        return "雑談返答文をせいせいしたよ〜〜〜"
-
-    def transrateQuery(self, query): #query: 発言ログを切り出したもの、リストのindexが小さい方が新しい発言である
+    def translateQuery(self, query): #query: 発言ログを切り出したもの、リストのindexが小さい方が新しい発言である
         queryAnalyze = {} #key : user名　value: Query内の出現回数
         for item in query:
             if item[0] in queryAnalyze.keys():
@@ -44,7 +54,7 @@ class ChatGenerator:
 
 if __name__ == "__main__":
     gen = ChatGenerator()
-    trans = gen.transrateQuery(
+    trans = gen.translateQuery(
         [
             ("usr", "talk4 1-3"),
             ("usr", "talk3 1-2"),
