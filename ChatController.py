@@ -1,4 +1,3 @@
-from ChatGenerator import ChatGenerator
 import ConcreteTask
 import MessageParser
 import singleton
@@ -6,7 +5,7 @@ import MessageParser
 import json
 import urllib
 import switchbotConnenctor
-import ChatGenerator
+import ChatGeneratorConnector
 
 """""
 
@@ -82,7 +81,7 @@ class dealChatMessage(ReplyMaker):
         # 雑談生成クエリを作る
         queryList = messageLog[:3]
         # 雑談生成モジュールにクエリを投げる
-        generator = ChatGenerator.ChatGenerator()
+        generator = ChatGeneratorConnector.ChatGenerator()
         reply = generator.getReply(queryList)
         # リプライを生成して返す
         return reply
@@ -94,7 +93,7 @@ class dealChatMessage(ReplyMaker):
 
 
 
-
+""""
 class ChatSequence(singleton.Singleton):
     def __init__(self):
         self.chatSequence = []
@@ -133,3 +132,6 @@ if __name__ == "__main__":
     # ctrl.dealMessage("エアコンの暖房26度でつけて！")
     chatbot = ChatEvent()
     chatbot.makeReply2("は〜〜〜い")
+
+
+"""
