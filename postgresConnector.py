@@ -28,12 +28,13 @@ class postgres_connecter:
         sql.append(" ,".join(target))
         sql.append("FROM")
         sql.append(", ".join(table))
-        if where != None and len(where) == 2:
-            sql.append("WHERE ")
-            sql.append("=".join(where))
-        elif where != None and len(where) == 3:
-            sql.append("WHERE ")
-            sql.append(where[2].join(where[0:2]))
+        sql.append(self._getWherePhrase(where))
+        # if where != None and len(where) == 2:
+        #     sql.append("WHERE ")
+        #     sql.append("=".join(where))
+        # elif where != None and len(where) == 3:
+        #     sql.append("WHERE ")
+        #     sql.append(where[2].join(where[0:2]))
 
         sql.append(";")
         query = " ".join(sql)
@@ -75,6 +76,39 @@ class postgres_connecter:
             conn.commit()
 
 
+    def set(self, target, table, value, where):
+        if len(table) == 0 or table == "":
+            return
+        
+        sql = ["UPDATE"]
+        sql.append(table)
+        sql.append("SET")
+        sql.append(target)
+        sql.append("=")
+        sql.append(value)
+        sql.append(self._getWherePhrase(where))
+
+        query = " ".join(sql)
+
+        print("query = " + query)   
+        with self._getConnection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query)
+            conn.commit()
+
+
+    def _getWherePhrase(self, where):
+        sql = []
+
+        if where != None and len(where) == 2:
+            sql.append("WHERE ")
+            sql.append("=".join(where))
+        elif where != None and len(where) == 3:
+            sql.append("WHERE ")
+            sql.append(where[2].join(where[0:2]))
+
+        return " ".join(sql)
+
 
 if __name__ == "__main__":
 
@@ -86,15 +120,16 @@ if __name__ == "__main__":
         '0.0.0.0',
     )
 
-    rows = con.select("city", "temp_lo", "prcp", "date", table = ["weather"], where = ("city", "'Nagoya'", "="))    
-    for row in rows:
-        print(row)
+    # rows = con.select("city", "temp_lo", "prcp", "date", table = ["weather"], where = ("city", "'Nagoya'", "="))    
+    # for row in rows:
+    #     print(row)
 
-    con.insert(
-        ("city" , "'Nagoya'"),
-        ("temp_lo" , str(40)),
-        ("temp_hi", str(40 + 30*random.random())),
-        ("prcp", str(random.random())),
-        ("date", "'1999-11-30'"),
-        table = "weather"
-    )
+    # con.insert(
+    #     ("city" , "'Nagoya'"),
+    #     ("temp_lo" , str(40)),
+    #     ("temp_hi", str(40 + 30*random.random())),
+    #     ("prcp", str(random.random())),
+    #     ("date", "'1999-11-30'"),
+    #     table = "weather"
+    # )
+
