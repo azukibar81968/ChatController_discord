@@ -1,6 +1,6 @@
 import asyncio
 
-class utility:
+class asyncModule:
     def fire_and_forget(task, *args, **kwargs):
         loop = asyncio.get_event_loop()
         if callable(task):

@@ -9,7 +9,7 @@ import sqlInterface
 import asyncio
 import os
 import discordConnector
-from utility import utility
+from asyncModule import asyncModule
 
 tokne_key = "KADEN_DISCORDBOT_TOKEN"
 TOKEN = os.environ[tokne_key]
@@ -88,8 +88,8 @@ if __name__ == "__main__":
 
     # discordConnector.discordConnector().makeReply("test message", "bot2")
 
-    utility.fire_and_forget(app.run, '0.0.0.0')
-    utility.fire_and_forget(AHTalk().run)
+    asyncModule.fire_and_forget(app.run, '0.0.0.0')
+    asyncModule.fire_and_forget(AHTalk().run)
     # app.run(host='127.0.0.1')
 
     client.run(TOKEN)

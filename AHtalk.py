@@ -3,7 +3,7 @@ import subject
 import time
 import random
 import asyncio
-import utility
+import asyncModule
 import discordConnector
 
 class AHTalk:
@@ -22,8 +22,8 @@ class AHTalk:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
-        utility.utility.fire_and_forget(self.randomTalkSequence)
-        utility.utility.fire_and_forget(self.resetSubjectSequence)
+        asyncModule.asyncModule.fire_and_forget(self.randomTalkSequence)
+        asyncModule.asyncModule.fire_and_forget(self.resetSubjectSequence)
 
 
     def resetSubjectSequence(self):#定期的に話題リストを復元する
