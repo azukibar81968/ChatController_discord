@@ -1,7 +1,7 @@
 import sys
-sys.path.append('..')
 from statistics import mode
 from transitions.extensions import GraphMachine
+from transitions import State
 import xml.etree.ElementTree as ET
 import pprint
 import time
@@ -16,8 +16,6 @@ class stateMachine(object):
         # 適切な配列に格納
         self.headName = "Initial"
         self.finalName = "Final"
-        self.sqlIF = sqlInterface.SQLInterface()
-        self.dc = discordConnector.discordConnector()
 
         tree = ET.parse(source)
         root = tree.getroot()
@@ -27,7 +25,9 @@ class stateMachine(object):
         for s in root:            
         #  states
             if s.tag == "{http://www.w3.org/2005/07/scxml}state":
-                statesList.append(s.attrib["id"])
+                for invoke in s:
+                    if invoke.tag == "{http://www.w3.org/2005/07/scxml}invoke":
+                        statesList.append(State(name=s.attrib["id"], on_exit=["action_on_exit_"+invoke.attrib["src"]]))
         #  transitions
                 for t in s:
                     if t.tag == "{http://www.w3.org/2005/07/scxml}transition":
@@ -35,7 +35,7 @@ class stateMachine(object):
                             "trigger" : t.attrib["event"],
                             "source" : s.attrib["id"],
                             "dest" : t.attrib["target"],
-                            "prepare" : "stateAction"
+                            "prepare" : None
                         }
                         transitionsList.append(transition)
 
@@ -49,23 +49,14 @@ class stateMachine(object):
 
     def run(self):
         while True:
-            # 自分の状態をみる
-            nowName = self.statesMachine.state
-            if nowName == self.finalName:
+            nowName = self.statesMachine.state       # 自分の状態をみる
+            if nowName == self.finalName: # 終端なら終了
                 break
 
-            # 状態を元に、DBにアクセスして対話内容をひっぱってくる
-            reply = self.sqlIF.select(["body"], ["aatalk"], ["symbol", "'"+nowName+"'", "="])[0]
-
-            # asyncModuleのSendMessageで送る
-            print("sending a-atalk: reply *{}*".format(reply))
-            self.dc.makeReply(reply, "bot2")#TODO: 複数Botを交互に選択するようにしたい。情報はXMLのinvokeに入っている
-
-            # 状態を更新
-            # 選択肢を一覧で取得
-            triggerList = self.machine.get_triggers(nowName)
-            choise = random.choice(triggerList)
-            self.statesMachine.trigger(choise)
+            triggerList = self.machine.get_triggers(nowName)# 遷移先を一覧で取得
+            choise = random.choice(triggerList)# ランダムに遷移先を決定
+            self.statesMachine.trigger(choise)# 状態を更新
+            
 
             time.sleep(2*random.random())
 
@@ -73,9 +64,26 @@ class stateMachine(object):
 
 
 class callbackStates:#コールバック設定用のインナークラス
-    def stateAction(self):#状態遷移前に呼ばれます！！
+    def __init__(self) -> None:
+        self.sqlIF = sqlInterface.SQLInterface()
+        self.dc = discordConnector.discordConnector()
+
+    def let_speak(self, speaker):#状態遷移前に呼ばれます！！
+        nowName = self.state
+        print("on enter called in state:{}".format(nowName))
+        # 状態を元に、DBにアクセスして対話内容をひっぱってくる
+        reply = self.sqlIF.select(["body"], ["aatalk"], ["symbol", "'"+nowName+"'", "="])[0][0]
+
+        # asyncModuleのSendMessageで送る
+        print("sending a-atalk: reply *{}*".format(reply))
+        self.dc.makeReply(reply, speaker)#TODO: 複数Botを交互に選択するようにしたい。情報はXMLのinvokeに入っている
         pass
 
+    def action_on_exit_bot1(self):
+        self.let_speak("bot1")
+
+    def action_on_exit_bot2(self):
+        self.let_speak("bot2")
 
 if __name__ == "__main__":
     

@@ -13,7 +13,7 @@ class discordConnector:
         }
         jsondata = json.dumps(data)
         jsonbyte = jsondata.encode('utf-8')
-        #print("url = " + botUrlTable[botID]) #web hook URL確認
+        print("url = " + self.botUrlTable[botID]) #web hook URL確認
         request = urllib.request.Request(self.botUrlTable[botID], jsonbyte)#指定のボットを使って返信する
 
         request.add_header('User-Agent', 'curl/7.64.1')

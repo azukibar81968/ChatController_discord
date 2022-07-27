@@ -85,7 +85,6 @@ def insert():
 
 # Botの起動とDiscordサーバーへの接続
 if __name__ == "__main__":
-
     # discordConnector.discordConnector().makeReply("test message", "bot2")
 
     asyncModule.fire_and_forget(app.run, '0.0.0.0')
