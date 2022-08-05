@@ -1,5 +1,7 @@
 import requests, json, singleton
-
+from zmq import device
+import datetime
+import sqlInterface
 
 class KadenControll:
     def __init__(self):
@@ -127,6 +129,34 @@ class SwitchBotConnector(singleton.Singleton):
         print(inputJson) # 入力
         res = requests.post(url, data=inputJson, headers=headers)
         print(res.text) # 結果
+
+        self.regist_to_DB(deviceID, body)
+
+
+    def regist_to_DB(self, deviceID, command):
+        headers = {'content-type': 'application/json'}
+        TODAY = datetime.date.today()
+        dt_now = datetime.datetime.now()
+        
+        DEVICE = ""
+        if deviceID == self.DEVICEID_airConditioner:
+            DEVICE = "Air Conditioner"
+        elif deviceID == self.DEVICEID_light:
+            DEVICE = "Light"
+
+        #SQLクエリを作成
+        queryDict = {
+            "data" : [
+                ["date", "\'" + str(TODAY) + "\'"],
+                ["time", "\'" + str(dt_now.hour).zfill(2)+str(dt_now.minute).zfill(2) + "\'"],
+                ["checked", "false"],
+                ["device", "\'" + DEVICE + "\'"],
+                ["command", "\'" + str(command).replace("\'", "\"") + "\'"],
+            ],
+            "table" : "Switchbot_DeviceLog"
+        }  
+
+        return requests.post("http://10.0.1.94:5000/insert/", data=json.dumps(queryDict), headers=headers)
 
 
 

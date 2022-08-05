@@ -2,6 +2,8 @@ from re import sub
 import sqlInterface
 import pprint
 import random
+import StateMachine
+
 
 class subject:#話題クラス
     def __init__(self) -> None:
@@ -62,12 +64,15 @@ class weatherSubject(subject):
     def runSubject(self):
         super().runSubject()
         
+        aaTalkMachine = StateMachine.stateMachine("weather_temp_hi.xml")
+
         dbData = self.checkDB()
         reply = None
         for i in dbData:
             if int(i[0]) > 25:
-                print("今日はクソあついねぇ:rep")
-                reply = "今日はクソあついねぇ"
+                aaTalkMachine.run()
+                # print("今日はクソあついねぇ:rep")
+                # reply = "今日はクソあついねぇ"
             else:
                 print("今日はクソほどはあつくないねぇ:rep")
                 reply = "今日はクソほどはあつくないねぇ"

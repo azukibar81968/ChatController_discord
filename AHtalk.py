@@ -12,9 +12,9 @@ class AHTalk:
         self.subjectListOriginal = [
             subject.nullSubject(),
             subject.weatherSubject()
+            #ここに話題objectを追加すると、その話をするようになる
         ]
-#        for i in self.subjectListOriginal:#とりあえずテスト、全部はしらせる
-#            i.runSubject()
+
 
         self.initSubjectList()
 

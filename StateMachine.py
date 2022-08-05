@@ -26,8 +26,10 @@ class stateMachine(object):
         #  states
             if s.tag == "{http://www.w3.org/2005/07/scxml}state":
                 for invoke in s:
+                    botname = ""
                     if invoke.tag == "{http://www.w3.org/2005/07/scxml}invoke":
-                        statesList.append(State(name=s.attrib["id"], on_exit=["action_on_exit_"+invoke.attrib["src"]]))
+                        botname = invoke.attrib["src"]
+                    statesList.append(State(name=s.attrib["id"], on_exit=["action_on_exit_"+botname]))
         #  transitions
                 for t in s:
                     if t.tag == "{http://www.w3.org/2005/07/scxml}transition":
@@ -70,13 +72,12 @@ class callbackStates:#コールバック設定用のインナークラス
 
     def let_speak(self, speaker):#状態遷移前に呼ばれます！！
         nowName = self.state
-        print("on enter called in state:{}".format(nowName))
         # 状態を元に、DBにアクセスして対話内容をひっぱってくる
         reply = self.sqlIF.select(["body"], ["aatalk"], ["symbol", "'"+nowName+"'", "="])[0][0]
 
         # asyncModuleのSendMessageで送る
         print("sending a-atalk: reply *{}*".format(reply))
-        self.dc.makeReply(reply, speaker)#TODO: 複数Botを交互に選択するようにしたい。情報はXMLのinvokeに入っている
+        self.dc.makeReply(reply, speaker)
         pass
 
     def action_on_exit_bot1(self):
