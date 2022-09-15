@@ -17,7 +17,8 @@ class stateMachine(object):
         self.headName = "Initial"
         self.finalName = "Final"
 
-        tree = ET.parse(source)
+        self.sourceName = source
+        tree = ET.parse(self.sourceName+".xml")
         root = tree.getroot()
         statesList = []
         transitionsList = []
@@ -48,7 +49,6 @@ class stateMachine(object):
         self.machine = GraphMachine(model = self.statesMachine, states = statesList, transitions = transitionsList, initial = self.headName, auto_transitions=False)
 
 
-
     def run(self):
         while True:
             nowName = self.statesMachine.state       # 自分の状態をみる
@@ -57,7 +57,7 @@ class stateMachine(object):
 
             triggerList = self.machine.get_triggers(nowName)# 遷移先を一覧で取得
             choise = random.choice(triggerList)# ランダムに遷移先を決定
-            self.statesMachine.trigger(choise)# 状態を更新
+            self.statesMachine.trigger(choise, self.sourceName)# 状態を更新
             
 
             time.sleep(2*random.random())
@@ -70,25 +70,25 @@ class callbackStates:#コールバック設定用のインナークラス
         self.sqlIF = sqlInterface.SQLInterface()
         self.dc = discordConnector.discordConnector()
 
-    def let_speak(self, speaker):#状態遷移前に呼ばれます！！
+    def let_speak(self, speaker, sourceName):#状態遷移前に呼ばれます！！
         nowName = self.state
         # 状態を元に、DBにアクセスして対話内容をひっぱってくる
-        reply = self.sqlIF.select(["body"], ["aatalk"], ["symbol", "'"+nowName+"'", "="])[0][0]
-
+        reply = random.choice(self.sqlIF.select(["body"], ["aatalk"], ["free", "symbol='" + nowName+ "' and tag='" + sourceName + "'" ]))[0]
+        #pprint.pprint(self.sqlIF.select(["body"], ["aatalk"], ["free", "symbol='" + nowName+ "' and tag='" + sourceName + "'" ]))
         # asyncModuleのSendMessageで送る
         print("sending a-atalk: reply *{}*".format(reply))
         self.dc.makeReply(reply, speaker)
         pass
 
-    def action_on_exit_bot1(self):
-        self.let_speak("bot1")
+    def action_on_exit_bot1(self, sourceName):
+        self.let_speak("bot1", sourceName)
 
-    def action_on_exit_bot2(self):
-        self.let_speak("bot2")
+    def action_on_exit_bot2(self, sourceName):
+        self.let_speak("bot2", sourceName)
 
 if __name__ == "__main__":
     
-    m = stateMachine("weather_temp_hi.xml")
+    m = stateMachine("weather_temp_lo")
 
     filename = 'model.png'
     m.machine.get_graph().draw(filename, prog='dot', format='png')

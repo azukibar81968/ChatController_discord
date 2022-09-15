@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" binding="early" name="talk_weather_temp" qt:editorversion="4.11.0" xmlns:qt="http://www.qt.io/2015/02/scxml-ext">
+    <state id="Initial">
+        <qt:editorinfo scenegeometry="866.49;238.77;760.49;188.77;166;100" geometry="866.49;238.77;-106;-50;166;100"/>
+        <transition type="external" event="known" target="parrot"/>
+        <transition type="external" event="unknown" target="ask"/>
+        <invoke src="bot1"/>
+    </state>
+    <state id="parrot">
+        <qt:editorinfo scenegeometry="1131.18;420.28;1071.18;370.28;120;100" geometry="1131.18;420.28;-60;-50;120;100"/>
+        <transition type="external" target="responce_parrot" event="Transition_known_1"/>
+        <invoke src="bot2">
+            <qt:editorinfo geometry="-60;-50;0;0;0;0"/>
+        </invoke>
+    </state>
+    <state id="ask">
+        <qt:editorinfo scenegeometry="593.14;420.28;533.14;370.28;120;100" geometry="593.14;420.28;-60;-50;120;100"/>
+        <transition type="external" event="Transition_unknown_1" target="give"/>
+        <invoke src="bot2">
+            <qt:editorinfo geometry="-60;-50;0;0;0;0"/>
+        </invoke>
+    </state>
+    <state id="give">
+        <qt:editorinfo scenegeometry="596.38;580.18;536.38;530.18;120;100" geometry="596.38;580.18;-60;-50;120;100"/>
+        <transition type="external" event="Transition_unknown_2" target="responce_give"/>
+        <invoke src="bot1">
+            <qt:editorinfo geometry="-60;-50;0;0;0;0"/>
+        </invoke>
+    </state>
+    <state id="responce_give">
+        <qt:editorinfo scenegeometry="596.38;739;536.38;689;120;100" geometry="596.38;739;-60;-50;120;100"/>
+        <transition type="external" event="finish" target="Final"/>
+        <invoke src="bot2">
+            <qt:editorinfo geometry="-60;-50;0;0;0;0"/>
+        </invoke>
+    </state>
+    <state id="responce_parrot">
+        <qt:editorinfo scenegeometry="1131.18;586.66;1071.18;536.66;120;100" geometry="1131.18;586.66;-60;-50;120;100"/>
+        <transition type="external" event="finish" target="Final"/>
+        <invoke src="bot1">
+            <qt:editorinfo geometry="-60;-50;0;0;0;0"/>
+        </invoke>
+    </state>
+    <state id="Final">
+        <qt:editorinfo scenegeometry="869.72;937.79;809.72;887.79;120;100" geometry="869.72;937.79;-60;-50;120;100"/>
+    </state>
+</scxml>

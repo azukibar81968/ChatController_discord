@@ -13,8 +13,10 @@ class KadenControll:
         print(command)
         if command["option"]["task"]["head"] == "airconditioner":
             controller = AirConditionerControll()
+            return "bot1"
         elif command["option"]["task"]["head"] == "light":
             controller = LightControll()
+            return "bot2"
 
 
         controller.deal(command)   

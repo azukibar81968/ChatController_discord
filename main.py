@@ -35,7 +35,7 @@ async def on_message(message):
         await message.channel.send('Hello Test Bot')
 
     replyData = ctrl.dealMessage(message.content) #メッセージを処理
-    discordConnector.discordConnector().makeReply(replyData, "bot2")
+    discordConnector.discordConnector().makeReply(replyData[1], replyData[0])
 
 
 ##### flask,DBのインターフェース #####

@@ -10,8 +10,11 @@ class AHTalk:
     def __init__(self) -> None:
         self.subjectList = []
         self.subjectListOriginal = [
-            subject.nullSubject(),
-            subject.weatherSubject()
+            subject.noticeTomorrowRainy(),
+            subject.noticeTomorrowLowTemp(),
+            subject.noticeTomorrowHiTemp()
+            #subject.nullSubject(),
+            #subject.weatherSubject()
             #ここに話題objectを追加すると、その話をするようになる
         ]
 
@@ -29,7 +32,7 @@ class AHTalk:
     def resetSubjectSequence(self):#定期的に話題リストを復元する
         while 1:
             self.initSubjectList()
-            time.sleep(30)
+            time.sleep(60*60*24) #同じ話題を降るようになるスパン
             #print("A-HConversation: reset subject list")
 
     def randomTalkSequence(self):#ランダムに話題をユーザーに投げつけようとする
@@ -40,9 +43,9 @@ class AHTalk:
             print("A-HConversation: run subject *" + subject.subjectID() + "*")
             self.subjectList.remove(subject)
             reply = subject.runSubject()
-            time.sleep(15)
+            time.sleep(3)#話題を振るスパン
 
-#            print("ah rep = " + reply)
+            print("ah rep = " + reply)
             if reply != None:
                 discordConnector.discordConnector().makeReply(reply, "bot2")
 
@@ -60,3 +63,5 @@ class AHTalk:
 if __name__ == "__main__":
     ah = AHTalk()
     ah.run()
+    #ah.randomTalkSequence()
+    #subject.noticeTomorrowLowTemp().runSubject()

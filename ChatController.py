@@ -6,6 +6,7 @@ import json
 import urllib
 import switchbotConnenctor
 import ChatGeneratorConnector
+import random
 
 """""
 
@@ -41,7 +42,6 @@ class ChatController:
     def __init__(self):
         self._messageList = []
         self._user = "usr"
-        self._bot = "bot"
 
         return
 
@@ -60,7 +60,7 @@ class ChatController:
 
 
         # messageListにログを追加
-        self._messageList.append((self._bot, reply))
+        self._messageList.append((reply[0], reply[1]))
         print("messageLog = " + str(self._messageList))
 
         return reply
@@ -73,9 +73,17 @@ class ReplyMaker:
 class dealTaskMessage(ReplyMaker):
     def dealMessage(self, message):
         command = ConcreteTask.rootContainer(message).compile()
-        switchbotConnenctor.KadenControll().deal(command)#commandからクエリを作成、送信
-        
-        return "はいよ〜"
+        replyBot = switchbotConnenctor.KadenControll().deal(command)#commandからクエリを作成、送信
+        replyList = [
+            "はいよ",
+            "はいはい",
+            "あい",
+            "おっけー",
+            "了解",
+            "うん",
+            "はい！"
+        ]
+        return [replyBot, random.choice(replyList)]
 
 class dealChatMessage(ReplyMaker):
     def dealMessage(self, message, messageLog):
@@ -83,9 +91,18 @@ class dealChatMessage(ReplyMaker):
         queryList = messageLog[-3:]
         # 雑談生成モジュールにクエリを投げる
         generator = ChatGeneratorConnector.ChatGenerator()
-        reply = generator.getReply(queryList)
+        replyText = generator.getReply(queryList)
+        try:
+            replyBot = messageLog[-2][0]
+        except:
+            return "うん"
+        
+        # リプライがおかしい場合は捨てる（返信はしない、無視）
+        if len(replyText) > 30:
+            return "うん"
+        
         # リプライを生成して返す
-        return reply
+        return [replyBot, replyText]
 
 
 

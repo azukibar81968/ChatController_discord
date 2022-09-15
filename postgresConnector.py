@@ -1,3 +1,4 @@
+import string
 import psycopg2
 import os
 import random
@@ -99,13 +100,17 @@ class postgres_connecter:
 
     def _getWherePhrase(self, where):
         sql = []
-
         if where != None and len(where) == 2:
-            sql.append("WHERE ")
-            sql.append("=".join(where))
+            if where[0] == "free":
+                sql.append("WHERE ")
+                sql.append(where[1])
+            else:
+                sql.append("WHERE ")
+                sql.append("=".join(where))
         elif where != None and len(where) == 3:
             sql.append("WHERE ")
             sql.append(where[2].join(where[0:2]))
+            
 
         return " ".join(sql)
 

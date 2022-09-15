@@ -5,7 +5,7 @@ from regex import P
 
 class ChatGenerator:
     def __init__(self):
-        self._chatGeneratorURL = "http://172.17.0.2:5000/"
+        self._chatGeneratorURL = "http://172.17.0.3:5000/"
 
     def getReply(self, query):
         headers = {
